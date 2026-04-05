@@ -1,23 +1,21 @@
 import subprocess
 import sys
 import os
-
-# Get the directory where build.py is located
-SERVER_DIR = os.path.dirname(os.path.abspath(__file__))
-EXE_PATH = os.path.join(SERVER_DIR, "dist", "server.exe")
-CLIENT_DIR = os.path.normpath(os.path.join(SERVER_DIR, "..", "client"))
-CLIENT_BUILD_PATH = os.path.join(CLIENT_DIR,"dist","weather-app","browser")
+from config import *
+import shutil
 
 
-def ensure_pyinstaller():
+def ensure_modules_installed():
     try:
         import PyInstaller  # noqa
+        import flask  # noqa
     except ImportError:
-        print("Installing PyInstaller...")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "pyinstaller"])
+        print("Installing modules...")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "-r","requirements.txt"])
 
 
 def ensure_angular_build():
+
     if os.path.exists(CLIENT_BUILD_PATH):
         while True:
             response= input(f"Angular build exists\nDo you want to rebuild it? (y/n) ")
@@ -41,9 +39,18 @@ def ensure_angular_build():
     
     print("Angular built.")
 
-def build_exe():
 
-    
+def move_to_ui():
+    print(f"Moving build from {CLIENT_BUILD_PATH} to {UI_PATH}")
+    if not os.path.exists(CLIENT_BUILD_PATH):
+        raise OSError(f"Build folder does not exist: {CLIENT_BUILD_PATH}")
+    if os.path.exists(UI_PATH):
+        shutil.rmtree(UI_PATH)
+    shutil.copytree(CLIENT_BUILD_PATH, UI_PATH)
+    print("Build moved to ui folder successfully!")
+
+
+def build_exe():
     if os.path.exists(EXE_PATH):
         while True:
             response= input(f"EXE file already exists\nDo you want to rebuild it? (y/n) ")
@@ -57,11 +64,10 @@ def build_exe():
 
     
     print("Building EXE...")
-    ensure_pyinstaller()
+    ensure_modules_installed()
     # PyInstaller --add-data format: "source;destination" on Windows, "source:destination" on Unix
-    # Use relative path from SERVER_DIR to CLIENT_BUILD_PATH
-    relative_path = os.path.relpath(CLIENT_BUILD_PATH, SERVER_DIR)
-    add_data_arg = f"../client/dist/weather-app/browser{os.pathsep}client/dist/weather-app/browser"
+    # Use relative path from SERVER_DIR to UI_PATH
+    add_data_arg = f"../ui{os.pathsep}ui"
     
     
     try:
@@ -89,8 +95,10 @@ def run_exe():
 
     print("Server started. Press Ctrl+C to stop.")
 
+
+
 if __name__ == "__main__":
+    ensure_modules_installed()
     ensure_angular_build()
     build_exe()
     run_exe()
-
