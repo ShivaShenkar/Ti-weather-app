@@ -15,7 +15,11 @@ export class App {
   temperature = signal<number | null>(null);
   error = signal<string>('');
 
-  constructor(private weatherService: WeatherService) {}
+  constructor(private weatherService: WeatherService) {
+    window.addEventListener("beforeunload", function () {
+      navigator.sendBeacon("/shutdown");
+    });
+  }
 
   searchWeather(): void {
     if (!this.location.trim()) {

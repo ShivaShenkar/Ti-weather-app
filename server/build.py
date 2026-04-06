@@ -76,6 +76,7 @@ def build_exe():
             "-m",
             "PyInstaller",
             "--onefile",
+            # "--windowed",
             "--add-data",
             add_data_arg,
             "server.py"
@@ -100,5 +101,6 @@ def run_exe():
 if __name__ == "__main__":
     ensure_modules_installed()
     ensure_angular_build()
+    move_to_ui()
     build_exe()
     run_exe()
